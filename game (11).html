@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>魔法門 III：Emoji 世界</title>
+<style>
+:root{--bg:#efe6d2;--panel:#dccfae;--ink:#2a2114;--line:#8c7a50;--accent:#b5780b;--hp:#c0392b;--mp:#2e6fd0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#16120b;--panel:#241d11;--ink:#eadcb8;--line:#6b5a35;--accent:#e6b24a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#16120b;--panel:#241d11;--ink:#eadcb8;--line:#6b5a35;--accent:#e6b24a}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;overscroll-behavior:none;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#app{height:100%;height:100dvh;display:flex;flex-direction:column}
+#view{position:relative;flex:1;min-height:0;background:#000}
+#gl{width:100%;height:100%;display:block}
+#info{position:absolute;left:8px;top:8px;background:#000a;color:#f3e2b0;padding:4px 9px;border-radius:8px;font-size:clamp(13px,2.2vmin,18px);line-height:1.5}
+#mini{position:absolute;right:8px;top:8px;width:clamp(84px,12vmin,150px);height:clamp(84px,12vmin,150px);background:#000a;border-radius:6px;image-rendering:pixelated}
+#log{position:absolute;left:10px;right:10px;bottom:6px;font-size:clamp(13px,2.2vmin,18px);color:#f6e7b8;text-shadow:0 1px 3px #000,0 0 6px #000;pointer-events:none}
+#end,#menu{position:absolute;inset:0;display:grid;place-items:center;background:#000d;color:#f3e2b0;text-align:center;padding:12px}
+#end h2{font-size:28px;margin:0 0 8px}
+#menu>div{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;width:min(380px,100%);display:grid;gap:8px;max-height:100%;overflow:auto;text-align:left}
+#menu h3{margin:0;font-size:17px}
+#menu button{min-height:42px;font-size:15px;text-align:left;padding:0 12px}
+button:disabled{opacity:.4}
+#party{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px;background:var(--panel);border-top:1px solid var(--line)}
+.card{border:1px solid var(--line);border-radius:8px;padding:4px 6px;font-size:12px;display:grid;gap:3px;background:var(--bg)}
+.card.act{outline:2px solid var(--accent)}.card.dead{opacity:.45}.card.empty{opacity:.3;place-items:center}
+.card b{font-size:13px}.card i{display:block;height:5px;background:#0003;border-radius:3px;overflow:hidden}
+.card u{display:block;height:100%}.hp{background:var(--hp)}.mp{background:var(--mp)}
+#ctrl{padding:6px 6px 8px;background:var(--panel)}
+#mv{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+#cb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+button{min-height:46px;font-size:18px;font-family:inherit;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);cursor:pointer}
+button:active:not(:disabled){background:var(--accent);color:#000}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#fight{--es:clamp(64px,min(21vw,15vh),140px);position:absolute;left:0;right:0;bottom:0;display:grid;align-items:end;grid-template-columns:repeat(4,1fr);gap:2px 6px;padding:0 6px 6px;pointer-events:none}
+#fight .u{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;min-width:0}
+#fight .e{text-align:center;font-size:var(--es);line-height:1.1;transform-origin:50% 100%;transition:transform .25s;filter:drop-shadow(0 3px 3px #000a)}
+#fight .u.bk .e{font-size:calc(var(--es)*.72)}
+#fight .e.act{transform:translateY(-10px) scale(1.08)}
+#fight .e.dead{opacity:.5;filter:grayscale(1)}
+#fight .e.atk{animation:lunge .5s}
+#fight .e.hit{animation:shk .3s .25s;filter:drop-shadow(0 0 8px #f33)}
+#fight .card{width:100%;padding:3px 5px;font-size:11px;gap:2px;background:var(--panel);color:var(--ink);box-shadow:0 2px 6px #0008}
+#fight .card b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fight .card span{white-space:nowrap}
+#app.cmb #party{display:none}
+#fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.pop{position:absolute;font:900 clamp(24px,5.5vmin,40px)/1 Arial,"Noto Sans TC",sans-serif;opacity:0;white-space:nowrap;animation:popup 1.1s ease-out both}
+.pop.hurt{color:#ff3b3b;text-shadow:-2px 0 #fff,2px 0 #fff,0 -2px #fff,0 2px #fff,0 4px 5px #000}
+.pop.hit{color:#fff;text-shadow:-2px 0 #000,2px 0 #000,0 -2px #000,0 2px #000,0 4px 5px #000}
+.pop.heal{color:#6bff72;text-shadow:-2px 0 #063,2px 0 #063,0 -2px #063,0 2px #063,0 4px 5px #000}
+@keyframes popup{0%{opacity:0;transform:translate(-50%,12px) scale(.4)}12%{opacity:1;transform:translate(-50%,-4px) scale(1.6)}28%{opacity:1;transform:translate(-50%,-18px) scale(1)}70%{opacity:1;transform:translate(-50%,-52px) scale(1)}100%{opacity:0;transform:translate(-50%,-76px) scale(1)}}
+@keyframes lunge{0%,100%{transform:none}35%,60%{transform:translate(var(--dx,0px),var(--dy,-120px)) scale(.45)}}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#fs{position:absolute;right:8px;top:calc(clamp(84px,12vmin,150px) + 16px);width:40px;min-height:40px;padding:0;font-size:18px;opacity:.85}
+@media (min-aspect-ratio:6/5) and (min-width:700px){
+#app{display:grid;grid-template-columns:minmax(0,1fr) clamp(320px,30vw,440px);grid-template-rows:minmax(0,1fr) auto}
+#view{grid-column:1;grid-row:1/3}
+#party{grid-column:2;grid-row:1;align-content:start;overflow:auto;border-top:0;border-left:1px solid var(--line)}
+#ctrl{grid-column:2;grid-row:2;border-left:1px solid var(--line)}
+#fight{left:50%;right:auto;width:min(100%,820px);transform:translateX(-50%)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view">
+    <canvas id="gl"></canvas><div id="info"></div><button id="fs" aria-label="全螢幕">⛶</button><canvas id="mini" width="84" height="84"></canvas><div id="log"></div>
+    <div id="fight" hidden></div><div id="fx"></div><div id="menu" hidden><div></div></div>
+    <div id="end" hidden><div><h2 id="et"></h2><p id="ep"></p><button id="again" style="padding:0 22px">再玩一次</button> <button id="ld" style="padding:0 22px" hidden>📂 讀取自動存檔</button></div></div>
+  </div>
+  <div id="party"></div>
+  <input type="file" id="imp" accept=".json,application/json" hidden>
+  <div id="ctrl">
+    <div id="mv">
+      <button data-k="tl" aria-label="左轉">↰</button><button data-k="f" aria-label="前進">⬆️</button><button data-k="tr" aria-label="右轉">↱</button><button data-k="bag" aria-label="背包">🎒</button><button data-k="rest" aria-label="紮營">⛺</button>
+      <button data-k="l" aria-label="左移">⬅️</button><button data-k="b" aria-label="後退">⬇️</button><button data-k="r" aria-label="右移">➡️</button><button data-k="tp" aria-label="回城術">🌀</button><button data-k="save" aria-label="存檔／讀檔">💾</button>
+    </div>
+    <div id="cb" hidden><button data-k="atk">⚔️ 攻擊</button><button data-k="sk" id="sk">🔮 技能</button><button data-k="run">🏃 逃跑</button></div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),r=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),rm=(a,o)=>a.splice(a.indexOf(o),1);
+const DIRS=[[0,-1],[1,0],[0,1],[-1,0]],DN=['北','東','南','西'];
+const NM={village:'村莊',forest:'森林迷宮',dungeon:'地城迷宮',tower:'高塔迷宮'};
+const FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+let asT,pt=null,camp=[],campSp=[],campKey=null,ret=null,inv=[],dying=[],g,W,H,mons,items,npcs,vis,P,world,theme,area,party,pool,combat,gold,xp,lvl,camps,bonus,over,menu,done,AR={},logs=[];
+const view=$('#view'),renderer=new THREE.WebGLRenderer({canvas:$('#gl'),antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(70,1,.05,40),amb=new THREE.AmbientLight(0xffffff,.2),torch=new THREE.PointLight(0xffaa55,1.1,8);
+scene.add(camera,amb);camera.add(torch);camera.position.y=.5;
+const tgt={x:1,z:1,a:0};let vx=1,vz=1;camera.rotation.order='YXZ';
+
+const TH={
+ village:{w:[null,'🌲',1],f:['#5a8f3a','🟩'],bg:0x7ec0ee,fog:[8,22],amb:.95,torch:.25,pl:16,dc:[0,[]]},
+ forest:{w:[null,'🌲'],f:['#2d5a2a','🟩'],bg:0x6fb5ea,fog:[3,12],amb:.8,torch:.5,pl:34,dc:[80,['🌿','🍄','🌼']]},
+ dungeon:{w:['#7a6a55','🧱'],f:['#4a3a28','🟫'],c:['#1a1830','✨'],bg:0x050403,fog:[1.5,9],amb:.2,torch:1.05},
+ tower:{w:['#3a3560','🟪'],f:['#1d1b33','🔹'],c:['#0a0a2a','⭐'],bg:0x07071a,fog:[1.5,10],amb:.3,torch:1.1}};
+const VIL=["###########","#.........#","#.........#","#.........#","#.........#","#.........#","#.........#","#.........#","###########"];
+const MT={forest:[['🐺','野狼',12,4],['🐗','野豬',16,5],['🕷️','巨蛛',20,6],['🐻','棕熊',26,8]],
+ dungeon:[['🦇','吸血蝠',16,6],['🐍','毒蛇',20,7],['💀','骷髏兵',28,9],['🧟','殭屍',34,10],['👹','食人魔',46,12]],
+ tower:[['👻','幽靈',26,9],['🦂','巨蠍',32,11],['🗿','石像鬼',42,13],['🧛','吸血鬼',50,15]]};
+const BOSS={dungeon:['🐉','遠古巨龍',120,16],tower:['😈','塔主惡魔',110,17]},CN={forest:10,dungeon:14,tower:12},IC={forest:[6,3,1],dungeon:[9,3,2],tower:[7,3,2]};
+const CH=()=>[{n:'騎士',e:'💂',hp:42,mhp:42,mp:6,mmp:6,a:[7,13],sk:'重擊',cost:0},{n:'牧師',e:'🧑‍⚕️',hp:28,mhp:28,mp:18,mmp:18,a:[3,7],sk:'治療',cost:0},
+ {n:'法師',e:'🧙',hp:24,mhp:24,mp:20,mmp:20,a:[3,6],sk:'火球',cost:70},{n:'弓手',e:'🧝',hp:30,mhp:30,mp:10,mmp:10,a:[5,10],sk:'連射',cost:60},{n:'盜賊',e:'🥷',hp:28,mhp:28,mp:8,mmp:8,a:[4,9],sk:'偷襲',cost:50},{n:'武僧',e:'🦸',hp:36,mhp:36,mp:8,mmp:8,a:[6,11],sk:'連擊',cost:60},{n:'煉金師',e:'🧑‍🔬',hp:24,mhp:24,mp:16,mmp:16,a:[3,6],sk:'酸液',cost:80},{n:'詩人',e:'🧑‍🎤',hp:26,mhp:26,mp:16,mmp:16,a:[3,7],sk:'妙音',cost:70}];
+const SK={重擊:[3,'m',1.9],偷襲:[3,'m',2.4],火球:[5,'f'],連射:[3,'d'],治療:[5,'h'],連擊:[3,'d'],酸液:[5,'f'],妙音:[5,'h']};
+
+function emo(x,e,px,cx,cy){x.font=px+'px '+FONT;x.textAlign='center';x.textBaseline='middle';x.fillText(e,cx,cy)}
+const tc={};
+function tile(bg,e,n){const k=bg+e+n;if(!tc[k]){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');if(bg){x.fillStyle=bg;x.fillRect(0,0,128,128)}
+  (n===1?[[64,64]]:[[32,32],[96,32],[32,96],[96,96]]).forEach(([a,b])=>emo(x,e,n===1?104:60,a,b+3));const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;t.wrapS=t.wrapT=THREE.RepeatWrapping;tc[k]=t}return tc[k]}
+const stex={};
+function sprite(e,s){if(!stex[e]){const c=document.createElement('canvas');c.width=c.height=128;emo(c.getContext('2d'),e,100,64,70);stex[e]=new THREE.CanvasTexture(c)}
+  const m=new THREE.Sprite(new THREE.SpriteMaterial({map:stex[e]}));m.scale.set(s,s,1);return m}
+const wallG=new THREE.BoxGeometry(1,1,1);
+
+function gen(n){W=H=n;g=Array.from({length:H},()=>Array(W).fill(1));const st=[[1,1]];g[1][1]=0;
+  while(st.length){const [x,y]=st[st.length-1];
+    const d=[[2,0],[-2,0],[0,2],[0,-2]].sort(()=>Math.random()-.5).filter(([dx,dy])=>{const a=x+dx,b=y+dy;return a>0&&b>0&&a<W-1&&b<H-1&&g[b][a]});
+    if(!d.length){st.pop();continue}const [dx,dy]=d[0];g[y+dy/2][x+dx/2]=0;g[y+dy][x+dx]=0;st.push([x+dx,y+dy])}
+  for(let i=0;i<n*1.4;i++){const x=r(1,W-2),y=r(1,H-2);if(x%2!==y%2)g[y][x]=0}}
+function addMon(x,y,e,n,hp,atk,boss){const s=sprite(e,boss?1:.8);s.position.set(x,boss?.5:.42,y);world.add(s);mons.push({x,y,e,n,hp,mhp:hp,atk,s,boss})}
+function addItem(x,y,k){const e={gold:'💎',potion:'🧪',fountain:'⛲',dungeon:'🕳️',tower:'🗼'}[k],ex=k==='dungeon'||k==='tower';
+  const s=sprite(e,ex?.9:.45);s.position.set(x,ex?.45:.22,y);world.add(s);items.push({x,y,k,e,s})}
+const _qx=new THREE.Quaternion(),_qz=new THREE.Quaternion(),AX=new THREE.Vector3(1,0,0),AZ=new THREE.Vector3(0,0,1);
+function bend(s,pl){const f=s.userData.f,a=(f[0]-(W-1)/2)/pl,b=(f[2]-(H-1)/2)/pl,R=pl+f[1];s.position.set(R*Math.sin(a)*Math.cos(b),R*Math.cos(a)*Math.cos(b),R*Math.sin(b))}
+function put(s,x,h,z){s.userData.f=[x,h,z];if(theme.pl)bend(s,theme.pl);else s.position.set(x,h,z)}
+function curve(t){world.children.forEach(s=>{if(s.userData.skip)return;s.userData.f=[s.position.x,s.position.y,s.position.z];bend(s,t.pl)});
+  const [n,es]=t.dc;for(let i=0;i<n;i++){const x=r(1,W-2),y=r(1,H-2);if(g[y][x])continue;const s=sprite(es[r(0,es.length-1)],.3);s.userData.f=[x+Math.random()-.5,.12,y+Math.random()-.5];bend(s,t.pl);world.add(s)}}
+function placeCam(){const pl=theme.pl;if(pl){const a=(vx-(W-1)/2)/pl,b=(vz-(H-1)/2)/pl;world.quaternion.copy(_qx.setFromAxisAngle(AX,-b).multiply(_qz.setFromAxisAngle(AZ,a)));camera.position.set(0,pl+.5,0);camera.rotation.x=-.18}else{world.quaternion.identity();camera.position.set(vx,.5,vz);camera.rotation.x=0}}
+function addNpc(x,y,pe,be,f,bx,by,st,ic){const o={x,y,f,fx:x,fy:y,t0:-1e4,nx:1000+Math.random()*2000,fl:1,home:[x,y],s:null,st};if(pe){const s=sprite(pe,.5);s.position.set(x,.25,y);world.add(s);o.s=s;if(ic){const i=sprite(ic,.3);i.position.set(x,.62,y);world.add(i);o.ic=i}}if(be){const b=sprite(be,1);b.position.set(bx,.45,by);world.add(b);if(bx!==x||by!==y)g[by][bx]=1}npcs.push(o)}
+function build(name,sv){
+  const t=TH[name];world=new THREE.Group();mons=[];items=[];npcs=[];
+  if(name==='village'){g=VIL.map(s=>[...s].map(c=>+(c==='#')));H=g.length;W=g[0].length}else if(sv){g=sv.g.map(r=>r.slice());H=g.length;W=g[0].length}else{gen(name==='forest'?21:name==='dungeon'?19:15);if(name==='forest')g[1][2]=0}
+  vis=sv?sv.vis.map(r=>r.slice()):Array.from({length:H},()=>Array(W).fill(name==='village'?1:0));
+  const wm=new THREE.MeshLambertMaterial({map:tile(...t.w),alphaTest:t.w[0]?0:.5});
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(g[y][x]&&DIRS.some(([dx,dy])=>g[y+dy]&&g[y+dy][x+dx]===0)){if(t.w[0]){const m=new THREE.Mesh(wallG,wm);m.position.set(x,.5,y);world.add(m)}else{const s=sprite(t.w[1],1.1);s.position.set(x,.52,y);world.add(s)}}
+  const plane=(k,rot,y)=>{const tx=k==='f'?null:tile(...t[k]);if(tx)tx.repeat.set(W,H);const m=new THREE.Mesh(new THREE.PlaneGeometry(W,H).rotateX(rot),new THREE.MeshLambertMaterial(tx?{map:tx}:{color:t.f[0]}));m.position.set(W/2-.5,y,H/2-.5);world.add(m)};
+  if(t.pl){const gm=new THREE.SphereGeometry(t.pl,t.pl*5|0,t.pl*3|0),ps=gm.attributes.position,cl=[],bc=new THREE.Color(t.f[0]);for(let i=0;i<ps.count;i++){const k=.82+.18*Math.sin(ps.getX(i)*1.7)*Math.sin(ps.getZ(i)*1.3+ps.getY(i)*.9);cl.push(bc.r*k,bc.g*k,bc.b*k)}gm.setAttribute('color',new THREE.Float32BufferAttribute(cl,3));const sm=new THREE.Mesh(gm,new THREE.MeshLambertMaterial({vertexColors:true}));sm.userData.skip=1;world.add(sm)}else plane('f',-Math.PI/2,0);if(t.c)plane('c',Math.PI/2,1);
+  if(name==='village'){[[2,2,'🧑‍💼','🏪',shop,2,1,0,'🛒'],[4,2,'🧑‍🍳','🏡',tavern,4,1,0,'🍺'],[6,2,'🧓','⛪',temple,6,1,0,'🙏'],[8,4,'🧑‍🌾','🏡',()=>say('🧑‍🌾 農夫：森林右下角通往地城，右上角通往高塔。'),8,3,0,'💬'],[2,6,'👮','🏡',()=>say('💂 衛兵：魔力不足就別走太遠，🌀 回城術能帶你回村。'),2,5,0,'💬'],[8,6,null,'⛺',campMenu,8,6],[5,7,null,'🚪',()=>{if(ret)backTo();else{go('forest','s');say('🌲 你踏進了森林迷宮。走回入口可返回村莊。')}},5,7]].forEach(([x,y,pe,be,f,bx,by,st,ic])=>{
+      addNpc(x,y,pe,be,f,bx,by,st,ic)})}
+  else{
+  if(sv){sv.mons.forEach(m=>{addMon(m.x,m.y,m.e,m.n,m.mhp,m.atk,m.boss);mons[mons.length-1].hp=m.hp});sv.items.forEach(i=>addItem(i.x,i.y,i.k))}else{
+    const cells=[];for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(!g[y][x]&&x+y>7&&!(x===W-2&&(y===1||y===H-2)))cells.push([x,y]);
+    cells.sort(()=>Math.random()-.5);const T=MT[name];
+    for(let i=0;i<CN[name];i++){const [x,y]=cells.pop();addMon(x,y,...T[Math.min(T.length-1,Math.floor((x+y-2)/(W<17?6:9))+r(0,1))])}
+    if(BOSS[name])addMon(W-2,H-2,...BOSS[name],true);
+    IC[name].forEach((n,j)=>{for(let i=0;i<n;i++){const [x,y]=cells.pop();addItem(x,y,['gold','potion','fountain'][j])}});
+    }
+    if(name==='forest'){if(!sv){addItem(W-2,H-2,'dungeon');addItem(W-2,1,'tower')}addNpc(1,1,null,'🚪',()=>{go('village','s');say('🏘️ 穿過大門，回到村莊。')},1,1);addNpc(2,1,'💂',null,()=>menuOpen('💂 守衛：森林很危險，要回村莊嗎？',[['🏘️ 回村莊',()=>{closeMenu();go('village','s');say('🏘️ 守衛替你打開大門，回到村莊。')}]]),2,1,1)}}
+  if(t.pl)curve(t);AR[name]={g,W,H,world,mons,items,npcs,vis}}
+function startP(name){if(name==='village')return{x:5,y:6,d:2};if(name==='forest')return{x:3,y:1,d:3};let d=1;for(let k=0;k<4;k++)if(!g[1+DIRS[k][1]][1+DIRS[k][0]]){d=k;break}return{x:1,y:1,d}}
+function go(name,pos){
+  if(name==='village')ret=null;
+  if(area)AR[area].P={...P};if(world)scene.remove(world);
+  if(!AR[name])build(name);
+  ({g,W,H,world,mons,items,npcs,vis}=AR[name]);scene.add(world);area=name;theme=TH[name];
+  scene.background=new THREE.Color(theme.bg);scene.fog=new THREE.Fog(theme.bg,...theme.fog);amb.intensity=theme.amb;
+  P=pos==='s'?startP(name):pos||AR[name].P;
+  tgt.x=vx=P.x;tgt.z=vz=P.y;tgt.a=-P.d*Math.PI/2;camera.rotation.y=tgt.a;placeCam();reveal();ui()}
+function newGame(){
+  pt=null;camp=[];campSp=[];campKey=null;over=false;combat=null;menu=false;gold=100;xp=0;lvl=1;camps=2;bonus=0;done={};AR={};logs=[];area=null;
+  if(world){scene.remove(world);world=null}
+  const all=CH();inv=[];all.forEach(c=>{c.bmhp=c.mhp;c.bmmp=c.mmp;c.eq={};c.L=1});party=all.slice(0,2);pool=all.slice(2);$('#end').hidden=true;$('#menu').hidden=true;
+  go('village',{x:5,y:4,d:0});say('🏘️ 歡迎來到村莊。先到 🍺 酒館招募夥伴，再從 🌲 進入森林。🌀 回城術可隨時返回。')}
+
+function reveal(){for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const x=P.x+dx,y=P.y+dy;if(x>=0&&y>=0&&x<W&&y<H)vis[y][x]=1}}
+const busy=()=>Math.abs(vx-tgt.x)+Math.abs(vz-tgt.z)+Math.abs(camera.rotation.y-tgt.a)>.06;
+const say=t=>{logs.push(t);ui()};
+function mini(){const c=$('#mini').getContext('2d'),s=Math.floor(84/Math.max(W,H));c.clearRect(0,0,84,84);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(vis[y][x]){c.fillStyle=g[y][x]?'#6b5a35':'#cdbb8a';c.fillRect(x*s,y*s,s,s)}
+  const dot=(o,col)=>{if(vis[o.y][o.x]){c.fillStyle=col;c.fillRect(o.x*s,o.y*s,s,s)}};
+  mons.forEach(m=>dot(m,'#e04b3a'));items.forEach(i=>dot(i,'#4ab8e0'));npcs.forEach(n=>dot(n,'#ffd24a'));
+  c.fillStyle='#fff';c.fillRect(P.x*s,P.y*s,s,s);const d=DIRS[P.d];c.fillStyle='#e0a020';c.fillRect(P.x*s+d[0]*s/2+s/4,P.y*s+d[1]*s/2+s/4,s/2,s/2)}
+function ui(){
+  $('#info').innerHTML=`📍 ${NM[area]}　🧭 ${DN[P.d]}<br>💰 ${gold}　⭐ Lv${lvl}　⛺ ${camps}　🏕️ ${camp.length}`+(combat?`<br>${combat.m.e} ${combat.m.n} ${Math.max(0,combat.m.hp)}/${combat.m.mhp}`:'');
+  $('#party').innerHTML=party.map((p,i)=>`<div class="card${combat&&combat.i===i?' act':''}${p.hp?'':' dead'}"><b>${p.hp?p.e:'💀'} ${p.n}</b><i><u class="hp" style="width:${p.hp/p.mhp*100}%"></u></i><i><u class="mp" style="width:${p.mp/p.mmp*100}%"></u></i><span>${p.hp}/${p.mhp}</span></div>`).join('')+'<div class="card empty">空位</div>'.repeat((4-party.length%4)%4);
+  $('#mv').hidden=!!combat;$('#cb').hidden=!combat;$('#fight').hidden=!combat;$('#view').classList.toggle('fight',!!combat);$('#app').classList.toggle('cmb',!!combat);if(combat)fightUI();else $('#log').style.bottom='';if(combat)$('#sk').textContent='🔮 '+party[combat.i].sk;
+  $('#log').innerHTML=logs.slice(-4).map(l=>`<div>${l}</div>`).join('');mini();clearTimeout(asT);asT=setTimeout(autosave,500)}
+function end(t,p){$('#ld').hidden=!lsGet(AUTO);over=true;combat=null;$('#et').textContent=t;$('#ep').textContent=p;$('#end').hidden=false;ui()}
+
+function menuOpen(title,rows){menu=true;const m=$('#menu');m.hidden=false;const d=m.firstElementChild;d.innerHTML=`<h3>${title}</h3><div style="font-size:13px">💰 ${gold}</div>`;
+  rows.concat([['離開',closeMenu]]).forEach(([t,f,dis])=>{const b=document.createElement('button');b.textContent=t;b.disabled=!!dis;b.onclick=f;d.appendChild(b)})}
+function closeMenu(){menu=false;$('#menu').hidden=true;ui()}
+function buy(c,f,re){if(gold<c)return;gold-=c;f();ui();re()}
+function shop(){const w=100+bonus*40;menuOpen('🏪 雜貨店',[[`⛺ 營帳 30💰（現有 ${camps}）`,()=>buy(30,()=>camps++,shop),gold<30],[`🗡️ 磨利武器：全隊傷害 +2　${w}💰（已強化 ${bonus} 次）`,()=>buy(w,()=>bonus++,shop),gold<w]])}
+function temple(){const dead=party.filter(p=>!p.hp).length,c=20+30*dead;
+  menuOpen('⛪ 神殿',[[`🙏 治療並復活全隊 ${c}💰`,()=>buy(c,()=>party.forEach(p=>{p.dn=0;p.hp=p.mhp;p.mp=p.mmp}),temple),gold<c]])}
+function tavern(){const rows=[],full=party.length>=8;
+  pool.forEach(c=>rows.push([`${c.e} 僱用${c.n}（${c.sk}）${c.cost}💰`,()=>{if(full||gold<c.cost)return;gold-=c.cost;rm(pool,c);party.push(c);
+    catchUp(c);ui();tavern()},full||gold<c.cost]));
+  party.forEach((c,i)=>rows.push([`👋 解僱 ${c.e}${c.n}`,()=>{if(party.length<2)return;party.splice(i,1);for(const k in c.eq)if(c.eq[k]){inv.push(c.eq[k]);c.eq[k]=null}recalc(c);pool.push(c);ui();tavern()},party.length<2]));
+  menuOpen(`🍺 酒館（隊伍 ${party.length}/8）`,rows)}
+
+const AUTO='mm3e_auto',SLOT=i=>'mm3e_s'+i;
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
+function snap(){AR[area].P={...P};const areas={};
+  for(const n in AR){const a=AR[n];areas[n]=n==='village'?{P:a.P}:{g:a.g,vis:a.vis,P:a.P,mons:a.mons.map(m=>({x:m.x,y:m.y,e:m.e,n:m.n,hp:m.hp,mhp:m.mhp,atk:m.atk,boss:!!m.boss})),items:a.items.map(i=>({x:i.x,y:i.y,k:i.k}))}}
+  return{v:1,t:Date.now(),gold,xp,lvl,camps,bonus,done,inv,party,pool,camp,ret,area,areas,logs:logs.slice(-4)}}
+const summary=d=>`${NM[d.area]} Lv${d.lvl} 💰${d.gold} 隊伍${d.party.length}+${d.camp.length}　${new Date(d.t).toLocaleString('zh-TW',{hour12:false})}`;
+function valid(d){return d&&d.v===1&&Array.isArray(d.party)&&d.party.length&&Array.isArray(d.pool)&&Array.isArray(d.camp)&&Array.isArray(d.inv)&&d.areas&&d.areas[d.area]&&d.areas.village&&NM[d.area]}
+function applySave(d){
+  if(!valid(d))throw new Error('bad');
+  menu=false;$('#menu').hidden=true;$('#end').hidden=true;over=false;combat=null;dying=[];
+  if(world){scene.remove(world);world=null}
+  gold=d.gold;xp=d.xp;lvl=d.lvl;camps=d.camps;bonus=d.bonus;done=d.done||{};inv=d.inv;party=d.party;pool=d.pool;camp=d.camp;logs=d.logs||[];
+  AR={};area=null;pt=null;campSp=[];campKey=null;
+  for(const n in d.areas){build(n,n==='village'?null:d.areas[n]);AR[n].P=d.areas[n].P}
+  go(d.area,d.areas[d.area].P);ret=d.ret||null;say('📂 已讀取存檔。')}
+function loadSlot(k){const raw=lsGet(k);if(!raw){say('沒有存檔。');return}try{applySave(JSON.parse(raw))}catch(e){say('❌ 存檔損毀，無法讀取。')}}
+function saveSlot(i){const ok=lsSet(SLOT(i),JSON.stringify(snap()));say(ok?`💾 已存入欄位 ${i}。`:'❌ 瀏覽器不允許儲存，請改用「匯出存檔檔案」。');saveMenu()}
+function autosave(){if(combat||menu||over||!area||!party)return;lsSet(AUTO,JSON.stringify(snap()))}
+function exportSave(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(snap())],{type:'application/json'}));a.download='魔法門III存檔.json';document.body.appendChild(a);a.click();a.remove();say('⬇️ 已匯出存檔檔案。')}
+function saveMenu(){const rows=[],sm=raw=>{try{return raw?summary(JSON.parse(raw)):'空'}catch(e){return'（損毀）'}};
+  for(let i=1;i<=3;i++){const raw=lsGet(SLOT(i));rows.push([`💾 存入欄位 ${i}　${sm(raw)}`,()=>saveSlot(i)]);rows.push([`📂 讀取欄位 ${i}`,()=>{closeMenu();loadSlot(SLOT(i))},!raw])}
+  const a=lsGet(AUTO);rows.push([`📂 讀取自動存檔　${sm(a)}`,()=>{closeMenu();loadSlot(AUTO)},!a]);
+  rows.push(['⬇️ 匯出存檔檔案',exportSave]);rows.push(['⬆️ 匯入存檔檔案',()=>$('#imp').click()]);
+  menuOpen('💾 存檔／讀檔（進度也會自動存檔）',rows)}
+function backTo(){const q=ret;ret=null;go(q.area,q.P);say(`🌀 傳送回先前的${NM[q.area]}。`)}
+function syncPortal(t){if(ret&&!pt){const s=sprite('🌀',.9);world.add(s);const o={x:4,y:6,f:backTo,fx:4,fy:6,t0:-1e4,nx:1e9,fl:1,home:[4,6],s:null,st:1};npcs.push(o);pt={s,o}}
+  else if(!ret&&pt){world.remove(pt.s);rm(npcs,pt.o);pt=null}
+  if(pt)put(pt.s,4,.45+Math.sin(t/300)*.05,6)}
+function catchUp(c){const k=lvl-(c.L||1);if(k>0){c.bmhp+=k*4;c.bmmp+=k*2;recalc(c);if(c.hp)c.hp=Math.min(c.mhp,c.hp+k*4);c.L=lvl}}
+function campMenu(){const rows=[],lab=c=>`${c.hp?c.e:'💀'} ${c.n}　❤️${c.hp}/${c.mhp}　🔷${c.mp}/${c.mmp}`;
+  party.forEach((c,i)=>rows.push([`🏕️ 留守營地　${lab(c)}`,()=>{if(party.length<=2)return;party.splice(i,1);camp.push(c);ui();campMenu()},party.length<=2]));
+  camp.forEach((c,i)=>rows.push([`📣 徵集入隊　${lab(c)}`,()=>{if(party.length>=8)return;camp.splice(i,1);catchUp(c);party.push(c);ui();campMenu()},party.length>=8]));
+  menuOpen(`⛺ 營地（隊伍 ${party.length}/8　留守 ${camp.length}）`,rows)}
+function syncCamp(t){const key=camp.map(c=>c.hp?c.e:'💀').join('|');
+  if(key!==campKey){campKey=key;campSp.forEach(s=>world.remove(s));campSp=camp.map(c=>{const s=sprite(c.hp?c.e:'💀',.34);world.add(s);return s})}
+  const n=campSp.length;campSp.forEach((s,i)=>{const a=t/1500+i*6.2832/n;put(s,8+Math.cos(a)*.32,1.02+Math.sin(t/420+i*2)*.04,6+Math.sin(a)*.32)})}
+function turn(s){if(over||combat||menu||busy())return;P.d=(P.d+s+4)%4;tgt.a-=s*Math.PI/2;ui()}
+function move(rel){
+  if(over||combat||menu||busy())return;
+  const f=DIRS[P.d],v=rel==='f'?f:rel==='b'?[-f[0],-f[1]]:rel==='l'?[f[1],-f[0]]:[-f[1],f[0]],nx=P.x+v[0],ny=P.y+v[1];
+  if(g[ny][nx]){say('🧱 前方是障礙。');return}
+  const n=npcs.find(n=>n.x===nx&&n.y===ny);if(n){if(rel==='f')n.f();else say('請面向對方。');return}
+  const m=mons.find(m=>m.x===nx&&m.y===ny);
+  if(m){if(rel==='f'){combat={m,i:firstAlive(0)};say(`⚠️ ${m.e} ${m.n} 擋住去路！`)}else say('⚠️ 有敵人擋在那邊，請面向牠。');return}
+  P.x=nx;P.y=ny;tgt.x=nx;tgt.z=ny;reveal();camp.forEach(c=>{if(c.hp){c.hp=Math.min(c.mhp,c.hp+Math.ceil(c.mhp*.05));c.mp=Math.min(c.mmp,c.mp+Math.ceil(c.mmp*.05))}});
+  const it=items.find(i=>i.x===nx&&i.y===ny);
+  if(it)pick(it);
+  else if(area!=='village'&&nx===1&&ny===1){const up=area==='forest'?'village':'forest';go(up,up==='village'?'s':undefined);say(`🚪 回到${NM[up]}。`)}
+  else ui()}
+function pick(it){
+  if(it.k==='dungeon'||it.k==='tower'){go(it.k,'s');say(`${it.e} 進入${NM[it.k]}。走回入口可離開。`);return}
+  if(it.k==='gold'){const n=r(20,50);gold+=n;say(`💎 獲得 ${n} 金幣。`)}
+  if(it.k==='potion'){party.forEach(p=>{if(p.hp)p.hp=Math.min(p.mhp,p.hp+20)});say('🧪 全隊恢復 20 點生命。')}
+  if(it.k==='fountain'){party.forEach(p=>{if(!p.hp){p.hp=Math.ceil(p.mhp/2);p.dn=0}else p.hp=p.mhp;p.mp=p.mmp});say('⛲ 泉水讓全隊完全恢復，倒下的夥伴復活了！')}
+  world.remove(it.s);rm(items,it)}
+function rest(){if(over||combat||menu)return;if(!camps){say('⛺ 沒有營帳了，可到雜貨店購買。');return}camps--;
+  party.forEach(p=>{if(p.hp){p.hp=Math.min(p.mhp,p.hp+Math.ceil(p.mhp*.4));p.mp=Math.min(p.mmp,p.mp+Math.ceil(p.mmp*.4))}});say('💤 紮營休息，恢復了體力與魔力。')}
+function portal(){if(over||combat||menu)return;if(area==='village'){say('你已經在村莊了。');return}
+  const c=party.filter(p=>p.hp&&p.mp>=6).sort((a,b)=>b.mp-a.mp)[0];if(!c){say('🌀 回城術需要 6 點魔力。');return}
+  c.mp-=6;const back={area,P:{...P}};go('village',{x:5,y:6,d:3});ret=back;say(`🌀 ${c.n} 施展回城術，回到了村莊。面前的 🌀 傳送點可回到剛才的位置。`)}
+
+const firstAlive=f=>{for(let j=f;j<party.length;j++)if(party[j].hp>0)return j;return -1};
+function flash(m){m.s.material.color.set(0xff5555);setTimeout(()=>m.s.material.color.set(0xffffff),160)}
+function act(t){
+  if(!combat||over||combat.lock)return;const a=party[combat.i],m=combat.m,b=()=>r(...a.a)+bonus*2+E(a).atk;a.af=Date.now()+500;
+  if(t==='atk'){const d=dmg(a,b());m.hp-=d;flash(m);pop(view.clientWidth/2,view.clientHeight*.38,d,'hit',150);say(`${a.e} ${a.n} 攻擊，造成 ${d} 傷害。`)}
+  else if(t==='sk'){const [cost,ty,mul]=SK[a.sk];if(a.mp<cost){say('魔力不足！');return}a.mp-=cost;
+    if(ty==='h'){const al=party.filter(p=>p.hp).sort((x,y)=>x.hp/x.mhp-y.hp/y.mhp)[0],h=r(20,30);al.hp=Math.min(al.mhp,al.hp+h);{const [x,y]=cpos(party.indexOf(al));pop(x,y,'+'+h,'heal',100)}say(`✨ 治療 ${al.n}，恢復 ${h} 點生命。`)}
+    else{const d=dmg(a,ty==='m'?Math.round(b()*mul):ty==='f'?r(16,26)+bonus*2+E(a).atk:b()+b());m.hp-=d;flash(m);pop(view.clientWidth/2,view.clientHeight*.38,d,'hit',150);say(`${{m:'💥',f:'🔥',d:'🎯'}[ty]} ${a.n} 使用${a.sk}，造成 ${d} 傷害。`)}}
+  else if(Math.random()<.5){combat=null;say('🏃 成功撤退。');return}else say('🏃 逃跑失敗！');
+  if(m.hp<=0){kill();return}
+  const j=firstAlive(combat.i+1);
+  if(j<0){combat.lock=1;ui();setTimeout(()=>{if(over||!combat||combat.m!==m)return;monsterTurn();if(over||!combat)return;combat.lock=0;combat.i=firstAlive(0);ui()},700);return}
+  combat.i=j;ui()}
+function monsterTurn(){
+  const m=combat.m,al=party.filter(p=>p.hp),now=Date.now(),vr=$('#view').getBoundingClientRect(),aim=(x,y)=>{m.at=now;m.atx=(x-vr.width/2)/(vr.width/2);m.aty=-((y+30-vr.height/2)/(vr.height/2))};
+  if(m.boss&&Math.random()<.3){const d=Math.round(m.atk*.7);aim(vr.width/2,vr.height*.75);al.forEach(p=>{const dd=Math.max(1,d-E(p).def);p.hp=Math.max(0,p.hp-dd);p.hf=now+600;hurt(p,dd,250)});say(`🔥 ${m.n} 發動範圍攻擊，全隊受到 ${d} 傷害！`)}
+  else{const t=al[r(0,al.length-1)],d=Math.max(1,r(m.atk-2,m.atk+3)-E(t).def),[cx,cy]=cpos(party.indexOf(t));aim(cx,cy);t.hp=Math.max(0,t.hp-d);t.hf=now+600;hurt(t,d,250);say(`${m.e} ${m.n} 攻擊 ${t.e} ${t.n}，造成 ${d} 傷害。`)}
+  party.forEach(p=>{if(!p.hp&&!p.dn){p.dn=1;say(`💀 ${p.n} 倒下了。`)}});
+  party.forEach(p=>{const h=E(p).regen;if(p.hp&&h)p.hp=Math.min(p.mhp,p.hp+h)});if(!party.some(p=>p.hp))end('💀 全軍覆沒','隊伍倒在迷宮裡，冒險到此結束。')}
+function kill(){
+  const m=combat.m,gg=r(10,25)+m.mhp;rm(mons,m);dying.push({s:m.s,w:world,t0:Date.now(),k:m.s.scale.x});gold+=gg;xp+=m.mhp;combat=null;say(`🎉 擊敗 ${m.n}，獲得 ${gg} 金幣。`);
+  loot(m);if(xp>=lvl*30){xp-=lvl*30;lvl++;party.forEach(p=>{p.L=lvl;p.bmhp+=4;p.bmmp+=2;recalc(p);if(p.hp)p.hp=Math.min(p.mhp,p.hp+8)});say(`⭐ 升級！隊伍來到 Lv${lvl}。`)}
+  if(m.boss){done[area]=1;if(done.dungeon&&done.tower)end('🏆 世界得救了！',`地城與高塔的首領都已倒下，你們帶著 ${gold} 金幣凱旋。`);else say(`👑 首領倒下！${done.dungeon?'高塔':'地城'}仍有魔王盤踞。`)}}
+
+const TN=['普通','精良','稀有','史詩','傳說'],TI=['⚪','🟢','🔵','🟣','🟠'];
+const SL=[['head','頭','🪖','頭盔'],['body','身','🥋','護甲'],['lh','左手','🛡️','盾牌'],['rh','右手','🗡️','武器'],['legs','腳','👢','戰靴'],['acc','飾品','💍','飾品']];
+const SETS={fire:{n:'烈焰',e:'🔥',t2:'攻擊+4',t4:'暴擊率25%，暴擊傷害×2'},guard:{n:'守護',e:'🔰',t2:'防禦+3',t4:'每回合結束回復5點生命'},moon:{n:'月影',e:'🌙',t2:'最大生命+15',t4:'吸血：傷害的30%轉為生命'}};
+function E(p){const e={atk:0,def:0,hp:0,mp:0,crit:0,regen:0,leech:0,c:{}};for(const k in p.eq){const it=p.eq[k];if(!it)continue;e.atk+=it.atk||0;e.def+=it.def||0;e.hp+=it.hp||0;e.mp+=it.mp||0;if(it.set)e.c[it.set]=(e.c[it.set]||0)+1}
+  const c=e.c;if(c.fire>=2)e.atk+=4;if(c.fire>=4)e.crit=.25;if(c.guard>=2)e.def+=3;if(c.guard>=4)e.regen=5;if(c.moon>=2)e.hp+=15;if(c.moon>=4)e.leech=.3;return e}
+function recalc(p){const e=E(p);p.mhp=p.bmhp+e.hp;p.mmp=p.bmmp+e.mp;p.hp=Math.min(p.hp,p.mhp);p.mp=Math.min(p.mp,p.mmp)}
+function mkItem(t){const s=SL[r(0,5)],k=s[0],it={sl:k,tier:t,e:s[2]};
+  if(k==='rh')it.atk=2+t*3+r(0,2);else if(k==='acc'){if(r(0,1))it.hp=5+t*5;else it.mp=2+t*3}else{it.def=Math.ceil(t/2)+1+(k==='body'?Math.floor(t/2):0);if(k==='body')it.hp=t*4}
+  if(t>=1&&Math.random()<.5)it.set=['fire','guard','moon'][r(0,2)];
+  it.n=(it.set?SETS[it.set].n+'·':'')+TN[t]+s[3];return it}
+const statTxt=it=>[it.atk&&'攻+'+it.atk,it.def&&'防+'+it.def,it.hp&&'生命+'+it.hp,it.mp&&'魔力+'+it.mp].filter(Boolean).join(' ');
+const itemTxt=it=>`${TI[it.tier]}${it.e} ${it.n}（${statTxt(it)}）`;
+function loot(m){const n=m.boss?2:Math.random()<.55?1:0;for(let i=0;i<n;i++){const q=r(1,100)+Math.floor(m.mhp/3)+(m.boss?40:0),t=Math.max(q<65?0:q<90?1:q<110?2:q<130?3:4,m.boss?3:0),it=mkItem(t);inv.push(it);say(`🎁 掉落 ${itemTxt(it)}`)}}
+function dmg(a,d){const e=E(a);if(Math.random()<e.crit){d*=2;say('💥 暴擊！')}if(e.leech)a.hp=Math.min(a.mhp,a.hp+Math.ceil(d*e.leech));return d}
+function bagMenu(){menuOpen(`🎒 隊伍裝備（背包 ${inv.length} 件）`,party.map((p,i)=>[`${p.e} ${p.n}　攻+${E(p).atk}　防+${E(p).def}`,()=>charMenu(i)]).concat([['💰 出售背包中的普通與精良裝備',()=>{const s=inv.filter(x=>x.tier<2);gold+=s.reduce((a,x)=>a+10+x.tier*15,0);inv=inv.filter(x=>x.tier>=2);ui();bagMenu()},!inv.some(x=>x.tier<2)]]))}
+function charMenu(i){const p=party[i],e=E(p),st=Object.entries(e.c).filter(([k,n])=>n>=2).map(([k,n])=>`<br><small>${SETS[k].e}${SETS[k].n}×${n}：${SETS[k].t2}${n>=4?'；'+SETS[k].t4:''}</small>`).join('');
+  menuOpen(`${p.e} ${p.n}　攻+${e.atk} 防+${e.def}${st}`,SL.map(s=>[`${s[2]} ${s[1]}：${p.eq[s[0]]?itemTxt(p.eq[s[0]]):'—'}`,()=>slotMenu(i,s[0])]).concat([['↩️ 返回',bagMenu]]))}
+function slotMenu(i,sl){const p=party[i],cur=p.eq[sl],rows=inv.filter(x=>x.sl===sl).sort((a,b)=>b.tier-a.tier).map(x=>[itemTxt(x),()=>{rm(inv,x);if(cur)inv.push(cur);p.eq[sl]=x;recalc(p);ui();slotMenu(i,sl)}]);
+  if(cur)rows.unshift(['⬇️ 卸下 '+itemTxt(cur),()=>{inv.push(cur);p.eq[sl]=null;recalc(p);ui();charMenu(i)}]);
+  menuOpen(`${p.e} ${p.n}：${SL.find(s=>s[0]===sl)[1]}`,rows.concat([['↩️ 返回',()=>charMenu(i)]]))}
+function cpos(i){const d=document.querySelector(`#fight [data-i="${i}"]`),v=$('#view').getBoundingClientRect();if(!d)return[v.width/2,v.height*.7];const b=d.getBoundingClientRect();return[b.left+b.width/2-v.left,b.top-v.top+b.height*.2]}
+function pop(x,y,t,c,dl){const f=document.createElement('span');f.className='pop '+c;f.textContent=t;f.style.cssText=`left:${x}px;top:${y}px;animation-delay:${dl||0}ms`;$('#fx').appendChild(f);setTimeout(()=>f.remove(),(dl||0)+1300)}
+function hurt(p,d,dl){const [x,y]=cpos(party.indexOf(p));pop(x,y,'-'+d,'hurt',dl)}
+function fightUI(){const f=$('#fight'),n=Date.now(),rows=Math.ceil(party.length/4);let h='';
+  for(let rw=rows-1;rw>=0;rw--)for(let c=0;c<4;c++){const i=rw*4+c,p=party[i];h+=p?`<div class="u${rw?' bk':''}"><div data-i="${i}" class="e ${[combat.i===i&&'act',!p.hp&&'dead',n<p.hf&&'hit',n<p.af&&'atk'].filter(Boolean).join(' ')}">${p.hp?p.e:'💀'}</div><div class="card${combat.i===i?' act':''}${p.hp?'':' dead'}"><b>${p.n}</b><i><u class="hp" style="width:${p.hp/p.mhp*100}%"></u></i><i><u class="mp" style="width:${p.mp/p.mmp*100}%"></u></i><span>❤️${p.hp}/${p.mhp} 🔷${p.mp}</span></div></div>`:'<div class="u"></div>'}
+  f.innerHTML=h;const v=$('#view').getBoundingClientRect();
+  f.querySelectorAll('[data-i]').forEach(d=>{const b=d.getBoundingClientRect();d.style.setProperty('--dx',(v.left+v.width/2-(b.left+b.width/2))+'px');d.style.setProperty('--dy',(v.top+v.height*.55-b.bottom)+'px')});
+  $('#log').style.bottom=(f.offsetHeight+8)+'px'}
+const A={f:()=>move('f'),b:()=>move('b'),l:()=>move('l'),r:()=>move('r'),tl:()=>turn(-1),tr:()=>turn(1),rest,tp:portal,save:()=>{if(over||combat||menu)return;saveMenu()},bag:()=>{if(over||combat||menu)return;bagMenu()},atk:()=>act('atk'),sk:()=>act('sk'),run:()=>act('run')};
+$('#ctrl').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&A[b.dataset.k])A[b.dataset.k]()});
+$('#again').onclick=newGame;$('#ld').onclick=()=>loadSlot(AUTO);
+$('#imp').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;f.text().then(t=>{try{applySave(JSON.parse(t))}catch(x){say('❌ 匯入失敗：不是有效的存檔檔案。')}})};
+const fsb=$('#fs'),de=document.documentElement;if(!de.requestFullscreen&&!de.webkitRequestFullscreen)fsb.hidden=true;
+fsb.onclick=()=>{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else(de.requestFullscreen||de.webkitRequestFullscreen).call(de)};
+const KM={w:'f',arrowup:'f',s:'b',arrowdown:'b',a:'tl',arrowleft:'tl',d:'tr',arrowright:'tr',q:'l',e:'r',r:'rest',t:'tp',p:'save',i:'bag','1':'atk','2':'sk','3':'run'};
+addEventListener('keydown',e=>{if(e.key==='Escape'&&menu){closeMenu();return}const k=KM[e.key.toLowerCase()];if(k){e.preventDefault();A[k]()}});
+
+function rs(){const w=view.clientWidth,h=view.clientHeight;if(w&&h){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
+new ResizeObserver(rs).observe(view);rs();
+function tick(t){requestAnimationFrame(tick);
+  vx+=(tgt.x-vx)*.2;vz+=(tgt.z-vz)*.2;camera.rotation.y+=(tgt.a-camera.rotation.y)*.2;placeCam();
+  if(area==='village'){syncCamp(t);syncPortal(t)}torch.intensity=theme.torch+Math.sin(t/90)*.07+Math.random()*.04;
+  mons.forEach(m=>{put(m.s,m.x,(m.boss?.5:.42)+Math.sin(t/300+m.x)*.03,m.y);if(!m.at)return;const b=m.boss?1:.8,e=Date.now()-m.at;if(e<650){const p=e/650,k=p<.4?p/.4:1-(p-.4)/.6,q=b*(1+.9*k);m.s.scale.set(q,q,1);const o=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(m.atx*k*.7*camera.aspect).add(new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).multiplyScalar(m.aty*k*.6));m.s.position.add(o.applyQuaternion(world.quaternion.clone().invert()))}else{m.s.scale.set(b,b,1);m.at=0}});npcs.forEach(n=>{if(!n.s)return;if(!n.st&&t>n.nx&&t>n.t0+1400){n.nx=t+1500+Math.random()*3000;const [dx,dy]=DIRS[r(0,3)],x=n.x+dx,y=n.y+dy;if(!g[y][x]&&Math.abs(x-n.home[0])+Math.abs(y-n.home[1])<=2&&!(x===P.x&&y===P.y)&&!npcs.some(o=>o!==n&&o.x===x&&o.y===y)){n.fx=n.x;n.fy=n.y;n.x=x;n.y=y;n.t0=t;if(dx)n.fl=dx}}const k0=Math.min(1,(t-n.t0)/1400),k=k0*k0*(3-2*k0);put(n.s,n.fx+(n.x-n.fx)*k,.25,n.fy+(n.y-n.fy)*k);n.s.scale.x=.5;if(n.ic){const f=n.s.userData.f;put(n.ic,f[0],.62,f[2])}});for(let i=dying.length-1;i>=0;i--){const d=dying[i],p=Math.min(1,(Date.now()-d.t0)/800),q=p<.15?1+p/.15*.25:1.25*(1-Math.pow((p-.15)/.85,2)),z=d.k*q;d.s.scale.set(z,z,1);d.s.material.color.set(0xff6666);d.s.material.opacity=1-p*.6;if(p>=1){d.w.remove(d.s);dying.splice(i,1)}}renderer.render(scene,camera)}
+newGame();requestAnimationFrame(tick);
+{const a=lsGet(AUTO);if(a)try{const d=JSON.parse(a);if(valid(d))menuOpen(`📂 發現自動存檔<br><small>${summary(d)}<br>選「離開」將開始新遊戲</small>`,[['📂 繼續上次進度',()=>{closeMenu();loadSlot(AUTO)}]])}catch(e){}}
+</script>
+</body>
+</html>
